@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:utip/widgets/bill_amount_field.dart';
 import 'package:utip/widgets/person_counter.dart';
+import 'package:utip/widgets/tip_slider.dart';
+import 'package:utip/widgets/total_per_person.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,10 +31,18 @@ class UTip extends StatefulWidget {
 
 class _UTipState extends State<UTip> {
   int _personCount = 1;
+  double _tipPct = 20;
+  double _billAmount = 0;
+  double _tipValue = 0;
+
+  void calculateTipValue() {
+    _tipValue = (_billAmount * (_tipPct / 100));
+  }
 
   void increment() {
     setState(() {
       _personCount++;
+      calculateTipValue();
     });
   }
 
@@ -40,6 +50,7 @@ class _UTipState extends State<UTip> {
     if (_personCount > 1) {
       setState(() {
         _personCount--;
+        calculateTipValue();
       });
     }
   }
@@ -55,30 +66,11 @@ class _UTipState extends State<UTip> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.inversePrimary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: EdgeInsets.all(16),
-            margin: EdgeInsets.all(8),
-            child: Column(
-              children: [
-                Text(
-                  "Tip per person",
-                  style: theme.textTheme.titleSmall!.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-                Text(
-                  "\$20.83",
-                  style: theme.textTheme.titleLarge!.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
+          TotalPerPerson(
+            theme: theme,
+            billAmount: _billAmount,
+            tipValue: _tipValue,
+            personCount: _personCount,
           ),
           Container(
             decoration: BoxDecoration(
@@ -89,18 +81,12 @@ class _UTipState extends State<UTip> {
             margin: EdgeInsets.all(8),
             child: Column(
               children: [
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.attach_money),
-                    labelText: "Bill amount",
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                  onChanged: (String value) {
-                    print(value);
+                BillAmountField(
+                  onChanged: (value) {
+                    setState(() {
+                      _billAmount = double.tryParse(value) ?? 0.0;
+                      calculateTipValue();
+                    });
                   },
                 ),
                 PersonCounter(
@@ -108,6 +94,27 @@ class _UTipState extends State<UTip> {
                   personCount: _personCount,
                   onDecrement: decrement,
                   onIncrement: increment,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Tip", style: theme.textTheme.titleMedium),
+                    Text(
+                      "\$${_tipValue.toStringAsFixed(2)}",
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+                // == Slider Text
+                Text("$_tipPct%"),
+                TipSlider(
+                  tipPct: _tipPct,
+                  onChanged: (double value) {
+                    setState(() {
+                      _tipPct = value;
+                      calculateTipValue();
+                    });
+                  },
                 ),
               ],
             ),

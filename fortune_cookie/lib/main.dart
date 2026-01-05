@@ -1,9 +1,16 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:fortune_cookie/providers/FortuneModel.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => FortuneModel(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -30,25 +37,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _currentFortune = "";
-
-  final _fortuneList = [
-    "Be your best",
-    "You will find a friend",
-    "You can do it",
-    "Keep the focus",
-  ];
-
-  void _randomFortune() {
-    int random = Random().nextInt(_fortuneList.length);
-    _currentFortune = _fortuneList[random];
-    setState(() {
-      _currentFortune;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final fortuneModel = Provider.of<FortuneModel>(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -70,13 +61,13 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text(
-                  _currentFortune,
+                  fortuneModel.currentFortune,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ),
             ),
             ElevatedButton(
-              onPressed: _randomFortune,
+              onPressed: fortuneModel.generateRandomFortune,
               child: Text("Get Fortune"),
             ),
           ],
